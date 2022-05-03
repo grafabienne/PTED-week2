@@ -1,0 +1,68 @@
+---
+title: "Exercise 2"
+output: html_document
+date: '2022-04-29'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```
+Task 1: Import data
+```
+```{r}
+## Load the necessary libraries ################################################
+
+library(readr)        # to import tabular data (e.g. csv)
+library(dplyr)        # to manipulate (tabular) data
+library(ggplot2)      # to visualize data
+library(sf)           # to handle spatial vector data
+library(terra)        # To handle raster data
+library(lubridate)    # To handle dates and times
+
+## Import the downloaded csv ##################################################
+
+wildschwein_BE <- read_delim("wildschwein_BE_2056.csv",",")
+
+wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE)
+```
+
+Task 2: Getting an overview
+```{r}
+wildschwein_BE
+
+wildschwein_BE%>%
+  group_by(TierID)
+
+wildschwein_BE$timelag<-as.integer(difftime(lead(wildschwein_BE$DatetimeUTC),wildschwein_BE$DatetimeUTC, units = "secs"))
+
+```
+Graphical overview
+```{r}
+ggplot(wildschwein_BE, aes(DatetimeUTC,TierID))+
+  geom_point()+
+  labs(title = "Tracking Period",
+       x="Date"
+       )
+```
+
+Overall three individuals were tracked concurrently over different time spans from august 2014 until July 2015. Animal 016A and 018A were tracked for a shorter time period than animal 002A.
+
+```{r}
+ggplot(wildschwein_BE,aes(timelag))+
+  geom_histogram(binwidth = 5)+
+  xlim(c(700,12000))+
+  ylim(c(0,5000))+
+  labs(x= "timelag [s]",
+       title= "Time interval of measurements")
+
+ggplot(wildschwein_BE, aes(timelag, colour= TierID))+
+  geom_freqpoly()+
+  xlim(c(800, 1000))+
+  labs(x="timelag  [s]",
+       title= "Distribution of time intervals")
+
+```
+
+The histogram shows that most of the time intervals are between 800 and 1000s and only few are greater than 1000. The second Graph shows the distribuiton of the "timelag" for every animal (Tier ID)
