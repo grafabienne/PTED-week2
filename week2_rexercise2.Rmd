@@ -143,3 +143,32 @@ ggplot(allcaro, aes(E,N,colour = Interval))+
 ```
 The lineplot shows, that with lower granularity more information gets lost. In this example, the speed peaks at 9:10 decrease drastically. Also the speed variations are not represented well in the case of 6 and 9 min sampling intervals.
 The second plot shows also, that some information gets lost. The hot spots are represented well even with the low granularity but some other parts of the route are lost.
+
+Task 5: Deriving movement parameters II: Rolling window functions
+```{r}
+library(zoo)
+
+example <- rnorm(10)
+rollmean(example,k = 3,fill = NA,align = "left")
+rollmean(example,k = 4,fill = NA,align = "left")
+
+caro_3_2<-as.data.frame(rollmean(caro$speed, k =3, fill= NA, align = "left"))
+caro_3_2$interval<-"3"
+colnames(caro_3_2)<-c("Speed","Window")
+
+caro_6_2<-as.data.frame(rollmean(caro$speed, k =6, fill = NA, align = "left"))
+caro_6_2$interval<-"6"
+colnames(caro_6_2)<-c("Speed","Window")
+
+
+caro_9_2<-as.data.frame(rollmean(caro$speed, k =9, fill = NA, align = "left"))
+caro_9_2$interval<-"9"
+colnames(caro_9_2)<-c("Speed","Window")
+caro_2<-rbind.data.frame(caro_3_2,caro_6_2,caro_9_2)
+
+ggplot(caro_2, aes(Speed, col=Window))+
+  geom_freqpoly()+
+  labs(x="Speed [m/s]")
+
+```
+
