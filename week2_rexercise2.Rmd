@@ -8,9 +8,7 @@ date: '2022-04-29'
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```
-Task 1: Import data
-```
+Task 1: Import Data
 ```{r}
 ## Load the necessary libraries ################################################
 
@@ -66,3 +64,14 @@ ggplot(wildschwein_BE, aes(timelag, colour= TierID))+
 ```
 
 The histogram shows that most of the time intervals are between 800 and 1000s and only few are greater than 1000. The second Graph shows the distribuiton of the "timelag" for every animal (Tier ID)
+
+Task 3: Deriving movement parameters I: Speed
+```{r}
+
+wildschwein_BE$steplength<-sqrt((wildschwein_BE$E-lead(wildschwein_BE$E,1))^2+(wildschwein_BE$N-lead(wildschwein_BE$N,1))^2)
+
+wildschwein_BE$speed<-wildschwein_BE$steplength/wildschwein_BE$timelag
+str(wildschwein_BE)
+```
+Speed unit is m/s, because the coordinates are in meters and the timelag is in seconds. Depending on the purpose it could make sense to calculate m/min or km/h.
+
