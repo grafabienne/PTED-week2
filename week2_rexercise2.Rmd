@@ -75,3 +75,71 @@ str(wildschwein_BE)
 ```
 Speed unit is m/s, because the coordinates are in meters and the timelag is in seconds. Depending on the purpose it could make sense to calculate m/min or km/h.
 
+Task 4: Cross-scale movement analysis
+```{r}
+caro <- read_delim("caro60.csv",",")
+caro <- st_as_sf(caro, coords = c("E", "N"), crs = 2056, remove = FALSE)
+str(caro)
+```
+Reduction of granularity
+```{r}
+caro_3<-slice(caro,seq(from= 1, to= 200, by =3))
+caro_6<-slice(caro,seq(from= 1, to= 200, by =6))
+caro_9<-slice(caro,seq(from= 1, to= 200, by =9))
+```
+Caluclation of timelag, steplength and speed
+```{r}
+##caro
+caro$timelag<-as.integer(difftime(lead(caro$DatetimeUTC),caro$DatetimeUTC, units = "secs"))
+
+caro$steplength<-sqrt((caro$E-lead(caro$E,1))^2+(caro$N-lead(caro$N,1))^2)
+
+caro$speed<-caro$steplength/caro$timelag
+
+##caro_3
+caro_3$timelag<-as.integer(difftime(lead(caro_3$DatetimeUTC),caro_3$DatetimeUTC, units = "secs"))
+
+caro_3$steplength<-sqrt((caro_3$E-lead(caro_3$E,1))^2+(caro_3$N-lead(caro_3$N,1))^2)
+
+caro_3$speed<-caro_3$steplength/caro_3$timelag
+
+##caro_6
+caro_6$timelag<-as.integer(difftime(lead(caro_6$DatetimeUTC),caro_6$DatetimeUTC, units = "secs"))
+
+caro_6$steplength<-sqrt((caro_6$E-lead(caro_6$E,1))^2+(caro_6$N-lead(caro_6$N,1))^2)
+
+caro_6$speed<-caro_6$steplength/caro_6$timelag
+
+##caro_9
+caro_9$timelag<-as.integer(difftime(lead(caro_9$DatetimeUTC),caro_9$DatetimeUTC, units = "secs"))
+
+caro_9$steplength<-sqrt((caro_9$E-lead(caro_9$E,1))^2+(caro_9$N-lead(caro_9$N,1))^2)
+
+caro_9$speed<-caro_9$steplength/caro_9$timelag
+```
+Visual interpretation
+```{r}
+caro$Interval<-"1min"
+caro_3$Interval<-"3min"
+caro_6$Interval<-"6min"
+caro_9$Interval<-"9min"
+
+allcaro<-rbind.data.frame(caro,caro_3,caro_6,caro_9)%>%
+  group_by(Interval)
+
+ggplot(allcaro, aes(DatetimeUTC,speed, col= Interval))+
+  geom_line()+
+  labs(title= "Speed at different sampling intervals",
+       x= "Time [h]",
+       y= "Speed [m/s]",
+  )
+                
+ggplot(allcaro, aes(E,N,colour = Interval))+
+  geom_sf()+
+  geom_path()+
+  coord_sf(datum =2056)+
+  labs(title = "Trajectories of Caro in different sampling intervals")
+
+```
+The lineplot shows, that with lower granularity more information gets lost. In this example, the speed peaks at 9:10 decrease drastically. Also the speed variations are not represented well in the case of 6 and 9 min sampling intervals.
+The second plot shows also, that some information gets lost. The hot spots are represented well even with the low granularity but some other parts of the route are lost.
