@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Task 1: Import Data
-```{r}
+```{r message = FALSE}
 ## Load the necessary libraries ################################################
 
 library(readr)        # to import tabular data (e.g. csv)
@@ -27,7 +27,7 @@ wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, rem
 ```
 
 Task 2: Getting an overview
-```{r}
+```{r message = FALSE}
 wildschwein_BE
 
 wildschwein_BE%>%
@@ -37,7 +37,7 @@ wildschwein_BE$timelag<-as.integer(difftime(lead(wildschwein_BE$DatetimeUTC),wil
 
 ```
 Graphical overview
-```{r}
+```{r message = FALSE}
 ggplot(wildschwein_BE, aes(DatetimeUTC,TierID))+
   geom_point()+
   labs(title = "Tracking Period",
@@ -47,7 +47,7 @@ ggplot(wildschwein_BE, aes(DatetimeUTC,TierID))+
 
 Overall three individuals were tracked concurrently over different time spans from august 2014 until July 2015. Animal 016A and 018A were tracked for a shorter time period than animal 002A.
 
-```{r}
+```{r message = FALSE}
 ggplot(wildschwein_BE,aes(timelag))+
   geom_histogram(binwidth = 5)+
   xlim(c(700,12000))+
@@ -66,7 +66,7 @@ ggplot(wildschwein_BE, aes(timelag, colour= TierID))+
 The histogram shows that most of the time intervals are between 800 and 1000s and only few are greater than 1000. The second Graph shows the distribuiton of the "timelag" for every animal (Tier ID)
 
 Task 3: Deriving movement parameters I: Speed
-```{r}
+```{r message = FALSE}
 
 wildschwein_BE$steplength<-sqrt((wildschwein_BE$E-lead(wildschwein_BE$E,1))^2+(wildschwein_BE$N-lead(wildschwein_BE$N,1))^2)
 
@@ -76,19 +76,19 @@ str(wildschwein_BE)
 Speed unit is m/s, because the coordinates are in meters and the timelag is in seconds. Depending on the purpose it could make sense to calculate m/min or km/h.
 
 Task 4: Cross-scale movement analysis
-```{r}
+```{r message = FALSE}
 caro <- read_delim("caro60.csv",",")
 caro <- st_as_sf(caro, coords = c("E", "N"), crs = 2056, remove = FALSE)
 str(caro)
 ```
 Reduction of granularity
-```{r}
+```{r message = FALSE}
 caro_3<-slice(caro,seq(from= 1, to= 200, by =3))
 caro_6<-slice(caro,seq(from= 1, to= 200, by =6))
 caro_9<-slice(caro,seq(from= 1, to= 200, by =9))
 ```
 Caluclation of timelag, steplength and speed
-```{r}
+```{r message = FALSE}
 ##caro
 caro$timelag<-as.integer(difftime(lead(caro$DatetimeUTC),caro$DatetimeUTC, units = "secs"))
 
@@ -118,7 +118,7 @@ caro_9$steplength<-sqrt((caro_9$E-lead(caro_9$E,1))^2+(caro_9$N-lead(caro_9$N,1)
 caro_9$speed<-caro_9$steplength/caro_9$timelag
 ```
 Visual interpretation
-```{r}
+```{r message = FALSE}
 caro$Interval<-"1min"
 caro_3$Interval<-"3min"
 caro_6$Interval<-"6min"
@@ -145,7 +145,7 @@ The lineplot shows, that with lower granularity more information gets lost. In t
 The second plot shows also, that some information gets lost. The hot spots are represented well even with the low granularity but some other parts of the route are lost.
 
 Task 5: Deriving movement parameters II: Rolling window functions
-```{r}
+```{r message = FALSE}
 library(zoo)
 
 example <- rnorm(10)
@@ -170,5 +170,9 @@ ggplot(caro_2, aes(Speed, col=Window))+
   geom_freqpoly()+
   labs(x="Speed [m/s]")
 
-```
+ggplot(caro_2, aes(Speed, col=Window))+
+  geom_boxplot()+
+  labs(x="Speed [m/s]")
 
+```
+The first plot shows, with smaller moving windows (k), the flatter the curve. More different values for speed are shown. Very high or very low values are better represented with a small moving window, as shown in the second graph (boxplot).
